@@ -23,6 +23,40 @@ extern "C" {
 
 #define CM_LIST_RETRIES_UNLIMITED 0xFF
 
+#define CM_CYCLE_RETRY_COUNTS_DEFAULT  3 /**< Default number of retries for cycling */
+#define CM_UNWIND_RETRY_COUNTS_DEFAULT 3 /**< Default number of retries for unwinding */
+
+#define CM_NEXT_CONFIG_CYCLE_DEFAULT(_fp, _p_list)                    \
+    do                                                                \
+    {                                                                 \
+        cm_config_t config           = {};                            \
+        config.between_retries_delay = 0;                             \
+        config.delay_ms              = 0;                             \
+        config.fp_call               = _fp;                           \
+        config.retries_max           = CM_CYCLE_RETRY_COUNTS_DEFAULT; \
+        if (cm_list_add_cycle_config(_p_list, &config) != true)       \
+        {                                                             \
+            printf("Failed to add cycle init configuration\n");       \
+            return false;                                             \
+        }                                                             \
+    } while (0);
+
+#define CM_NEXT_CONFIG_UNWIND_DEFAULT(_fp, _p_list)                    \
+    do                                                                 \
+    {                                                                  \
+        cm_config_t config           = {};                             \
+        config.between_retries_delay = 0;                              \
+        config.delay_ms              = 0;                              \
+        config.fp_call               = _fp;                            \
+        config.retries_max           = CM_UNWIND_RETRY_COUNTS_DEFAULT; \
+        config.level_safe            = 0xff;                           \
+        if (cm_list_add_unwind_config(_p_list, &config) != true)       \
+        {                                                              \
+            printf("Failed to add cycle init configuration\n");        \
+            return false;                                              \
+        }                                                              \
+    } while (0);
+
 typedef enum
 {
     CM_DIR_CYCLE = 0,

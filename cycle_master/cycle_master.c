@@ -122,6 +122,7 @@ cm_list_execute(void)
                     p_list_current->config_cycle._retries_cnt = 0;
                     cm_dir                                    = CM_DIR_UNWIND;
                     has_failed                                = true;
+                    return p_list_current                     = p_list_current->previous;
                 }
                 CM_SLEEP_MS(p_list_current->config_cycle.delay_ms);
                 return p_list_current;
@@ -135,11 +136,13 @@ cm_list_execute(void)
     }
     else if (cm_dir == CM_DIR_UNWIND)
     {
-        // if ((p_list_current->config_unwind.level_safe <= p_list_current->level) && (has_failed == true))
-        // {
-        //     has_failed = false;
-        //     cm_dir     = CM_DIR_CYCLE;
-        // }
+        if ((p_list_current->config_unwind.level_safe <= p_list_current->level) && (has_failed == true))
+        {
+            CM_LOGI("Go back to cycle\n");
+            has_failed = false;
+            cm_dir     = CM_DIR_CYCLE;
+            return p_list_current;
+        }
         if (p_list_current->config_unwind.fp_call != NULL)
         {
             if (p_list_current->config_unwind.fp_call(p_list_current, p_list_current->config_unwind.p_args) != true)
@@ -154,6 +157,7 @@ cm_list_execute(void)
                 }
                 return p_list_current;
             }
+            p_list_current = p_list_current->previous;
         }
         else
         {

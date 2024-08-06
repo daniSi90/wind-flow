@@ -6,8 +6,8 @@
 #include <windows.h>
 #include "cycle_master.h"
 
-static bool wifi_off(cm_list_t *list, void *p_args);
-static bool wifi_on(cm_list_t *list, void *p_args);
+static bool wifi_config0_init(cm_list_t *list, void *p_args);
+static bool wifi_config0_deinit(cm_list_t *list, void *p_args);
 static bool wifi_config1_init(cm_list_t *list, void *p_args);
 static bool wifi_config1_deinit(cm_list_t *list, void *p_args);
 static bool wifi_config2_init(cm_list_t *list, void *p_args);
@@ -17,78 +17,50 @@ static bool wifi_config3_deinit(cm_list_t *list, void *p_args);
 static bool wifi_config4_init(cm_list_t *list, void *p_args);
 static bool wifi_config4_deinit(cm_list_t *list, void *p_args);
 
-void
+bool
 main(void)
 {
-    cm_config_t config = {};
-    cm_list_t  *p_list = cm_list_add_next(NULL);
+    cm_list_t *p_list = cm_list_add_next(NULL);
     if (p_list == NULL)
     {
-        printf("Failed to allocate memory for connectivity list\n");
-        return;
+        return false;
     }
-    config.between_retries_delay = 0;
-    config.delay_ms              = 0;
-    config.fp_call               = wifi_on;
-    config.retries_max           = 3;
-    if (cm_list_add_cycle_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle init configuration\n");
-        return;
-    }
-    config.fp_call = wifi_off;
-    if (cm_list_add_unwind_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle deinit configuration\n");
-        return;
-    }
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config0_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config0_deinit, p_list);
 
     uint8_t cnt = 0;
     while (cnt++ < 30)
     {
         if (cm_list_execute() == NULL)
         {
-            return;
+            return true;
         }
         // printf("#############\n");
         Sleep(50);
     }
+    return false;
 }
 
 static bool
-wifi_off(cm_list_t *list, void *p_args)
+wifi_config0_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_off\n");
+    printf("> wifi_config0_init\n");
+
+    cm_list_t *p_list = cm_list_add_next(list);
+    if (p_list == NULL)
+    {
+        return false;
+    }
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config1_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config1_deinit, p_list);
+
     return true;
 }
 
 static bool
-wifi_on(cm_list_t *list, void *p_args)
+wifi_config0_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_on\n");
-
-    cm_config_t config = {};
-    cm_list_t  *p_list = cm_list_add_next(list);
-    if (p_list == NULL)
-    {
-        printf("Failed to allocate memory for connectivity list\n");
-        return false;
-    }
-    config.between_retries_delay = 0;
-    config.delay_ms              = 0;
-    config.fp_call               = wifi_config1_init;
-    config.retries_max           = 3;
-    if (cm_list_add_cycle_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle init configuration\n");
-        return false;
-    }
-    config.fp_call = wifi_config1_deinit;
-    if (cm_list_add_unwind_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle deinit configuration\n");
-        return false;
-    }
+    printf("> wifi_config0_deinit\n");
 
     return true;
 }
@@ -98,28 +70,13 @@ wifi_config1_init(cm_list_t *list, void *p_args)
 {
     printf("> wifi_config1_init\n");
 
-    cm_config_t config = {};
-    cm_list_t  *p_list = cm_list_add_next(list);
+    cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
-        printf("Failed to allocate memory for connectivity list\n");
         return false;
     }
-    config.between_retries_delay = 0;
-    config.delay_ms              = 0;
-    config.fp_call               = wifi_config2_init;
-    config.retries_max           = 3;
-    if (cm_list_add_cycle_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle init configuration\n");
-        return false;
-    }
-    config.fp_call = wifi_config2_deinit;
-    if (cm_list_add_unwind_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle deinit configuration\n");
-        return false;
-    }
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config2_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config2_deinit, p_list);
 
     return true;
 }
@@ -131,38 +88,19 @@ wifi_config1_deinit(cm_list_t *list, void *p_args)
     return true;
 }
 
-uint8_t cnt_config2 = 0;
 static bool
 wifi_config2_init(cm_list_t *list, void *p_args)
 {
     printf("> wifi_config2_init\n");
 
-    if (cnt_config2++ < 2)
-    {
-        return false;
-    }
-    cm_config_t config = {};
-    cm_list_t  *p_list = cm_list_add_next(list);
+    cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
-        printf("Failed to allocate memory for connectivity list\n");
         return false;
     }
-    config.between_retries_delay = 0;
-    config.delay_ms              = 0;
-    config.fp_call               = wifi_config3_init;
-    config.retries_max           = 3;
-    if (cm_list_add_cycle_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle init configuration\n");
-        return false;
-    }
-    config.fp_call = wifi_config3_deinit;
-    if (cm_list_add_unwind_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle deinit configuration\n");
-        return false;
-    }
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config3_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config3_deinit, p_list);
+
     return true;
 }
 static bool
@@ -172,33 +110,25 @@ wifi_config2_deinit(cm_list_t *list, void *p_args)
     return true;
 }
 
+uint8_t cnt_config3 = 0;
 static bool
 wifi_config3_init(cm_list_t *list, void *p_args)
 {
     printf("> wifi_config3_init\n");
 
-    cm_config_t config = {};
-    cm_list_t  *p_list = cm_list_add_next(list);
+    if (cnt_config3++ < 5)
+    {
+        return false;
+    }
+
+    cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
-        printf("Failed to allocate memory for connectivity list\n");
         return false;
     }
-    config.between_retries_delay = 0;
-    config.delay_ms              = 0;
-    config.fp_call               = wifi_config4_init;
-    config.retries_max           = 3;
-    if (cm_list_add_cycle_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle init configuration\n");
-        return false;
-    }
-    config.fp_call = wifi_config4_deinit;
-    if (cm_list_add_unwind_config(p_list, &config) != true)
-    {
-        printf("Failed to add cycle deinit configuration\n");
-        return false;
-    }
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config4_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config4_deinit, p_list);
+
     return true;
 }
 static bool
