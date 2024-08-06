@@ -1,0 +1,14 @@
+[
+{
+  "directory": "C:/development/test-bench/c-tb-cycle-master/build",
+  "command": "C:/development/tools/msys64/ucrt64/bin/cc.exe  @CMakeFiles/c-tb-cycle-master.dir/includes_C.rsp -g -std=gnu11 -o CMakeFiles/c-tb-cycle-master.dir/main.c.obj -c C:/development/test-bench/c-tb-cycle-master/main.c",
+  "file": "C:/development/test-bench/c-tb-cycle-master/main.c",
+  "output": "CMakeFiles/c-tb-cycle-master.dir/main.c.obj"
+},
+{
+  "directory": "C:/development/test-bench/c-tb-cycle-master/build",
+  "command": "C:/development/tools/msys64/ucrt64/bin/cc.exe  @CMakeFiles/c-tb-cycle-master.dir/includes_C.rsp -g -std=gnu11 -o CMakeFiles/c-tb-cycle-master.dir/cycle_master/cycle_master.c.obj -c C:/development/test-bench/c-tb-cycle-master/cycle_master/cycle_master.c",
+  "file": "C:/development/test-bench/c-tb-cycle-master/cycle_master/cycle_master.c",
+  "output": "CMakeFiles/c-tb-cycle-master.dir/cycle_master/cycle_master.c.obj"
+}
+]
