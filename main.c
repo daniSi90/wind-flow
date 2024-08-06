@@ -6,16 +6,16 @@
 #include <windows.h>
 #include "cycle_master.h"
 
-static bool wifi_config0_init(cm_list_t *list, void *p_args);
-static bool wifi_config0_deinit(cm_list_t *list, void *p_args);
-static bool wifi_config1_init(cm_list_t *list, void *p_args);
-static bool wifi_config1_deinit(cm_list_t *list, void *p_args);
-static bool wifi_config2_init(cm_list_t *list, void *p_args);
-static bool wifi_config2_deinit(cm_list_t *list, void *p_args);
-static bool wifi_config3_init(cm_list_t *list, void *p_args);
-static bool wifi_config3_deinit(cm_list_t *list, void *p_args);
-static bool wifi_config4_init(cm_list_t *list, void *p_args);
-static bool wifi_config4_deinit(cm_list_t *list, void *p_args);
+static bool function_0_init(cm_list_t *list, void *p_args);
+static bool function_0_deinit(cm_list_t *list, void *p_args);
+static bool function_1_init(cm_list_t *list, void *p_args);
+static bool function_1_deinit(cm_list_t *list, void *p_args);
+static bool function_2_init(cm_list_t *list, void *p_args);
+static bool function_2_deinit(cm_list_t *list, void *p_args);
+static bool function_3_init(cm_list_t *list, void *p_args);
+static bool function_3_deinit(cm_list_t *list, void *p_args);
+static bool function_4_init(cm_list_t *list, void *p_args);
+static bool function_4_deinit(cm_list_t *list, void *p_args);
 
 bool
 main(void)
@@ -25,8 +25,8 @@ main(void)
     {
         return false;
     }
-    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config0_init, p_list);
-    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config0_deinit, p_list);
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(function_0_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(function_0_deinit, p_list);
 
     uint8_t cnt = 0;
     while (cnt++ < 30)
@@ -42,79 +42,79 @@ main(void)
 }
 
 static bool
-wifi_config0_init(cm_list_t *list, void *p_args)
+function_0_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config0_init\n");
+    printf("> function_0_init\n");
 
     cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
         return false;
     }
-    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config1_init, p_list);
-    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config1_deinit, p_list);
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(function_1_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(function_1_deinit, p_list);
 
     return true;
 }
 
 static bool
-wifi_config0_deinit(cm_list_t *list, void *p_args)
+function_0_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config0_deinit\n");
+    printf("> function_0_deinit\n");
 
     return true;
 }
 
 static bool
-wifi_config1_init(cm_list_t *list, void *p_args)
+function_1_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config1_init\n");
+    printf("> function_1_init\n");
 
     cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
         return false;
     }
-    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config2_init, p_list);
-    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config2_deinit, p_list);
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(function_2_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(function_2_deinit, p_list);
 
     return true;
 }
 
 static bool
-wifi_config1_deinit(cm_list_t *list, void *p_args)
+function_1_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config1_deinit\n");
+    printf("> function_1_deinit\n");
     return true;
 }
 
 static bool
-wifi_config2_init(cm_list_t *list, void *p_args)
+function_2_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config2_init\n");
+    printf("> function_2_init\n");
 
     cm_list_t *p_list = cm_list_add_next(list);
     if (p_list == NULL)
     {
         return false;
     }
-    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config3_init, p_list);
-    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config3_deinit, p_list);
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(function_3_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(function_3_deinit, p_list);
 
     return true;
 }
 static bool
-wifi_config2_deinit(cm_list_t *list, void *p_args)
+function_2_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config2_deinit\n");
+    printf("> function_2_deinit\n");
     return true;
 }
 
 uint8_t cnt_config3 = 0;
 static bool
-wifi_config3_init(cm_list_t *list, void *p_args)
+function_3_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config3_init\n");
+    printf("> function_3_init\n");
 
     if (cnt_config3++ < 5)
     {
@@ -126,27 +126,27 @@ wifi_config3_init(cm_list_t *list, void *p_args)
     {
         return false;
     }
-    CM_NEXT_CONFIG_CYCLE_DEFAULT(wifi_config4_init, p_list);
-    CM_NEXT_CONFIG_UNWIND_DEFAULT(wifi_config4_deinit, p_list);
+    CM_NEXT_CONFIG_CYCLE_DEFAULT(function_4_init, p_list);
+    CM_NEXT_CONFIG_UNWIND_DEFAULT(function_4_deinit, p_list);
 
     return true;
 }
 static bool
-wifi_config3_deinit(cm_list_t *list, void *p_args)
+function_3_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config3_deinit\n");
+    printf("> function_3_deinit\n");
     return true;
 }
 
 static bool
-wifi_config4_init(cm_list_t *list, void *p_args)
+function_4_init(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config4_init\n");
+    printf("> function_4_init\n");
     return true;
 }
 static bool
-wifi_config4_deinit(cm_list_t *list, void *p_args)
+function_4_deinit(cm_list_t *list, void *p_args)
 {
-    printf("> wifi_config4_deinit\n");
+    printf("> function_4_deinit\n");
     return true;
 }
