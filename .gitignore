@@ -1,2 +1,4 @@
 build
 examples/example_1/build
+examples/example_1/.clang-format
+examples/example_1/.vscode

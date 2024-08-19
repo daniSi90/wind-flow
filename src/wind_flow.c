@@ -143,12 +143,24 @@ wf_list_execute(void)
 {
     if (wf_handle.p_list_current == NULL)
     {
-        WF_LOGD("List is empty\n");
+        // WF_LOGD("List is empty\n");
         return wf_handle.p_list_current;
     }
     wf_handle.level_current = wf_handle.p_list_current->level;
-    if (wf_handle.dir == WF_DIR_CYCLE)
+
+    if (wf_handle.dir == WF_DIR_WIND)
     {
+        /// Checking if there is an event to wait for before continuing
+        if ((wf_handle.p_list_current->event_wait == true) && (wf_handle.p_list_current->_wind_done == true))
+        {
+            if (wf_handle.p_list_current->_event_done == true)
+            {
+                wf_handle.p_list_current = wf_handle.p_list_current->next;
+                WF_LOGI("Waiting for event DONE\n");
+            }
+            return wf_handle.p_list_current;
+        }
+
         if (wf_handle.p_list_current->config_wind.fp_call != NULL)
         {
             if (wf_handle.p_list_current->config_wind.fp_call(wf_handle.p_list_current, wf_handle.p_list_current->config_wind.p_args) != true)
@@ -165,7 +177,11 @@ wf_list_execute(void)
                 WF_SLEEP_MS(wf_handle.p_list_current->config_wind.delay_ms);
                 return wf_handle.p_list_current;
             }
-            wf_handle.p_list_current = wf_handle.p_list_current->next;
+            wf_handle.p_list_current->_wind_done = true;
+            if (wf_handle.p_list_current->event_wait != true) /// Continiue to next if no event is needed, otherwise wait
+            {
+                wf_handle.p_list_current = wf_handle.p_list_current->next;
+            }
         }
         else
         {
@@ -178,7 +194,7 @@ wf_list_execute(void)
         {
             WF_LOGI("Go back to wind\n");
             wf_handle.has_failed = false;
-            wf_handle.dir        = WF_DIR_CYCLE;
+            wf_handle.dir        = WF_DIR_WIND;
             return wf_handle.p_list_current;
         }
         if (wf_handle.p_list_current->config_unwind.fp_call != NULL)
@@ -190,7 +206,7 @@ wf_list_execute(void)
                 {
                     WF_LOGE("Max retries reached\n");
                     wf_handle.p_list_current->config_wind._retries_cnt = 0;
-                    wf_handle.dir                                      = WF_DIR_CYCLE;
+                    wf_handle.dir                                      = WF_DIR_WIND;
                     wf_handle.has_failed                               = true;
                 }
                 return wf_handle.p_list_current;

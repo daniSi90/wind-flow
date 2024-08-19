@@ -45,7 +45,7 @@ extern "C" {
 #define WF_CYCLE_RETRY_COUNTS_DEFAULT  3 /**< Default number of retries for cycling */
 #define WF_UNWIND_RETRY_COUNTS_DEFAULT 3 /**< Default number of retries for unwinding */
 
-#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_p_list, _fp, _return)           \
+#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_p_list, _fp)                    \
     do                                                                \
     {                                                                 \
         wf_config_t config           = {};                            \
@@ -56,11 +56,11 @@ extern "C" {
         if (wf_list_add_wind_config(_p_list, &config) != true)        \
         {                                                             \
             printf("Failed to add wind init configuration\n");        \
-            return _return;                                           \
+            return false;                                             \
         }                                                             \
     } while (0);
 
-#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_p_list, _fp, _return)           \
+#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_p_list, _fp)                    \
     do                                                                 \
     {                                                                  \
         wf_config_t config           = {};                             \
@@ -72,13 +72,15 @@ extern "C" {
         if (wf_list_add_unwind_config(_p_list, &config) != true)       \
         {                                                              \
             printf("Failed to add wind init configuration\n");         \
-            return _return;                                            \
+            return false;                                              \
         }                                                              \
     } while (0);
 
+#define WF_NEXT_WAIT_FOR_EVENT(_p_list) _p_list->event_wait = true;
+
 typedef enum
 {
-    WF_DIR_CYCLE = 0,
+    WF_DIR_WIND = 0,
     WF_DIR_UNWIND,
 } wf_dir_t;
 
@@ -114,6 +116,7 @@ typedef struct wf_list_t
     wf_config_t config_unwind; /**< Function parameters to be executed when a specific deinitialization is required */
     uint8_t     level;         /**< Level of the state machine */
     bool        event_wait;    /**< If set to true, the state machine will wait for the event to be set before executing the next configuration */
+    bool        _wind_done;    /**< If set to true, the wind configuration has been executed */
     bool        _event_done;   /**< If set to true, the event has been set, internal use */
 } wf_list_t;
 

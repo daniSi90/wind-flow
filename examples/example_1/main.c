@@ -4,8 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <windows.h>
+// #include <sys/select.h>
+#include <unistd.h>
 #include "wind_flow.h"
 
+static bool function_start(void);
 static bool function_0_init(wf_list_t *list, void *p_args);
 static bool function_0_deinit(wf_list_t *list, void *p_args);
 static bool function_1_init(wf_list_t *list, void *p_args);
@@ -20,25 +23,77 @@ static bool function_4_deinit(wf_list_t *list, void *p_args);
 bool
 main(void)
 {
-    wf_list_t *p_list = wf_list_add_next(NULL);
-    if (p_list == NULL)
-    {
-        return false;
-    }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(function_0_init, p_list);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(function_0_deinit, p_list);
+    char           input[100];
+    struct timeval timeout;
+    fd_set         readfds;
+
+    function_start();
 
     uint8_t cnt = 0;
-    while (cnt++ < 30)
+    while (cnt++ < 5)
     {
         if (wf_list_execute() == NULL)
         {
             return true;
         }
         // printf("#############\n");
-        Sleep(50);
+        // Sleep(50);
+
+        // // Initialize the file descriptor set
+        // FD_ZERO(&readfds);
+        // FD_SET(STDIN_FILENO, &readfds);
+
+        // // Set timeout duration (e.g., 10 seconds)
+        // timeout.tv_sec  = 1;
+        // timeout.tv_usec = 0;
+
+        // printf("Enter a command: ");
+        // fflush(stdout);
+
+        // int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+
+        // if (result > 0)
+        // {
+        //     if (FD_ISSET(STDIN_FILENO, &readfds))
+        //     {
+        //         // Read input from user
+        //         if (scanf("%99s", input) == 1)
+        //         {
+        //             // Compare input to known commands
+        //             if (strcmp(input, "command1") == 0)
+        //             {
+        //                 // command_one();
+        //             }
+        //             else if (strcmp(input, "command2") == 0)
+        //             {
+        //                 // command_two();
+        //             }
+        //             else if (strcmp(input, "command3") == 0)
+        //             {
+        //                 // command_three();
+        //             }
+        //             else
+        //             {
+        //                 // unknown_command();
+        //             }
+        //         }
+        //     }
+        // }
     }
     return false;
+}
+
+static bool
+function_start(void)
+{
+    printf("> START\n");
+    wf_list_t *p_list = wf_list_add_next(NULL);
+    if (p_list == NULL)
+    {
+        return false;
+    }
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_0_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_0_deinit);
 }
 
 static bool
@@ -51,8 +106,8 @@ function_0_init(wf_list_t *list, void *p_args)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(function_1_init, p_list);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(function_1_deinit, p_list);
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_1_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_1_deinit);
 
     return true;
 }
@@ -75,8 +130,9 @@ function_1_init(wf_list_t *list, void *p_args)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(function_2_init, p_list);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(function_2_deinit, p_list);
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_2_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_2_deinit);
+    WF_NEXT_WAIT_FOR_EVENT(p_list);
 
     return true;
 }
@@ -98,8 +154,8 @@ function_2_init(wf_list_t *list, void *p_args)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(function_3_init, p_list);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(function_3_deinit, p_list);
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_3_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_3_deinit);
 
     return true;
 }
@@ -126,8 +182,8 @@ function_3_init(wf_list_t *list, void *p_args)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(function_4_init, p_list);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(function_4_deinit, p_list);
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_4_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_4_deinit);
 
     return true;
 }
