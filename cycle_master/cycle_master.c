@@ -61,9 +61,7 @@ static const char *TAG = "conn";
 #endif
 
 /* Private variables ---------------------------------------------------------*/
-static cm_dir_t   cm_dir     = CM_DIR_CYCLE; /**< Direction of the state machine */
-static bool       has_failed = false;        /**< Flag to indicate if the state machine has failed */
-static cm_list_t *p_list_current;
+static cm_handle_t cm_handle = { 0 };
 /* Private function prototypes -----------------------------------------------*/
 
 /* Public functions ----------------------------------------------------------*/
@@ -87,7 +85,7 @@ cm_list_add_next(cm_list_t *p_list)
     }
     else
     {
-        p_list_current = p_list_next; /// When input list is NULL this means its the begginning of the list
+        cm_handle.p_list_current = p_list_next; /// When input list is NULL this means its the begginning of the list
     }
     CM_LOGD("add next: level %d\n", p_list_next->level);
 
@@ -123,61 +121,61 @@ cm_list_add_unwind_config(cm_list_t *p_list, cm_config_t *p_config)
 cm_list_t *
 cm_list_execute(void)
 {
-    if (p_list_current == NULL)
+    if (cm_handle.p_list_current == NULL)
     {
         CM_LOGI("List is empty\n");
-        return p_list_current;
+        return cm_handle.p_list_current;
     }
-
-    if (cm_dir == CM_DIR_CYCLE)
+    cm_handle.level_current = cm_handle.p_list_current->level;
+    if (cm_handle.dir == CM_DIR_CYCLE)
     {
-        if (p_list_current->config_cycle.fp_call != NULL)
+        if (cm_handle.p_list_current->config_cycle.fp_call != NULL)
         {
-            if (p_list_current->config_cycle.fp_call(p_list_current, p_list_current->config_cycle.p_args) != true)
+            if (cm_handle.p_list_current->config_cycle.fp_call(cm_handle.p_list_current, cm_handle.p_list_current->config_cycle.p_args) != true)
             {
                 CM_LOGE("Failed to execute cycle function\n");
-                if (p_list_current->config_cycle._retries_cnt++ >= p_list_current->config_cycle.retries_max)
+                if (cm_handle.p_list_current->config_cycle._retries_cnt++ >= cm_handle.p_list_current->config_cycle.retries_max)
                 {
                     CM_LOGE("Max retries reached\n");
-                    p_list_current->config_cycle._retries_cnt = 0;
-                    cm_dir                                    = CM_DIR_UNWIND;
-                    has_failed                                = true;
-                    return p_list_current                     = p_list_current->previous;
+                    cm_handle.p_list_current->config_cycle._retries_cnt = 0;
+                    cm_handle.dir                                       = CM_DIR_UNWIND;
+                    cm_handle.has_failed                                = true;
+                    return cm_handle.p_list_current                     = cm_handle.p_list_current->previous;
                 }
-                CM_SLEEP_MS(p_list_current->config_cycle.delay_ms);
-                return p_list_current;
+                CM_SLEEP_MS(cm_handle.p_list_current->config_cycle.delay_ms);
+                return cm_handle.p_list_current;
             }
-            p_list_current = p_list_current->next;
+            cm_handle.p_list_current = cm_handle.p_list_current->next;
         }
         else
         {
             CM_LOGI("END OF LIST\n");
         }
     }
-    else if (cm_dir == CM_DIR_UNWIND)
+    else if (cm_handle.dir == CM_DIR_UNWIND)
     {
-        if ((p_list_current->config_unwind.level_safe <= p_list_current->level) && (has_failed == true))
+        if ((cm_handle.p_list_current->config_unwind.level_safe <= cm_handle.p_list_current->level) && (cm_handle.has_failed == true))
         {
             CM_LOGI("Go back to cycle\n");
-            has_failed = false;
-            cm_dir     = CM_DIR_CYCLE;
-            return p_list_current;
+            cm_handle.has_failed = false;
+            cm_handle.dir        = CM_DIR_CYCLE;
+            return cm_handle.p_list_current;
         }
-        if (p_list_current->config_unwind.fp_call != NULL)
+        if (cm_handle.p_list_current->config_unwind.fp_call != NULL)
         {
-            if (p_list_current->config_unwind.fp_call(p_list_current, p_list_current->config_unwind.p_args) != true)
+            if (cm_handle.p_list_current->config_unwind.fp_call(cm_handle.p_list_current, cm_handle.p_list_current->config_unwind.p_args) != true)
             {
                 CM_LOGE("Failed to execute unwind function\n");
-                if (p_list_current->config_cycle._retries_cnt++ >= p_list_current->config_cycle.retries_max)
+                if (cm_handle.p_list_current->config_cycle._retries_cnt++ >= cm_handle.p_list_current->config_cycle.retries_max)
                 {
                     CM_LOGE("Max retries reached\n");
-                    p_list_current->config_cycle._retries_cnt = 0;
-                    cm_dir                                    = CM_DIR_CYCLE;
-                    has_failed                                = true;
+                    cm_handle.p_list_current->config_cycle._retries_cnt = 0;
+                    cm_handle.dir                                       = CM_DIR_CYCLE;
+                    cm_handle.has_failed                                = true;
                 }
-                return p_list_current;
+                return cm_handle.p_list_current;
             }
-            p_list_current = p_list_current->previous;
+            cm_handle.p_list_current = cm_handle.p_list_current->previous;
         }
         else
         {
@@ -185,5 +183,5 @@ cm_list_execute(void)
         }
     }
 
-    return p_list_current;
+    return cm_handle.p_list_current;
 }

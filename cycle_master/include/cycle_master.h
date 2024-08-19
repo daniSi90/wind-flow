@@ -87,6 +87,14 @@ typedef bool (*fp_call_t)(cm_list_t *, void *);
 
 typedef struct
 {
+    cm_dir_t   dir;
+    cm_list_t *p_list_current;
+    bool       has_failed;
+    uint8_t    level_current; /**< Current level of the state machine */
+} cm_handle_t;
+
+typedef struct
+{
     uint8_t   retries_max;           /**< Number of retries */
     uint32_t  delay_ms;              /**< Delay in milliseconds */
     uint32_t  between_retries_delay; /**< Delay between retries */
