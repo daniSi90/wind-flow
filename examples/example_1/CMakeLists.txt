@@ -12,15 +12,7 @@ enable_testing()
 #FILE(GLOB_RECURSE UI_Sources CONFIGURE_DEPENDS ../components/ui/*.c)
 
 add_executable(cm-example-1 main.c
-                            ../../cycle_master/cycle_master.c
-                            #fault_handler.c
-                            # ../lwjson.c
-                            # ../lwjson_debug.c
-                            # ../lwjson_stream.c
-                            # ../semver.c
-                            #${LV_DRIVERS_Sources}
-                            #${LVGL_Sources}
-                            #${UI_Sources}
+                            ../../src/cycle_master.c
                             )
 
 if (WIN32)
@@ -33,18 +25,7 @@ endif (WIN32)
 
  # Add include directories
 target_include_directories(cm-example-1 PRIVATE
-                                        #${SDL2_INCLUDE_DIR}
-                                        #${CMAKE_SOURCE_DIR}/components/lvgl_drv/include
-                                        ../../cycle_master/include
-                                        # ../include
-                                        #../components/lvgl
-                                        #../components/alledio/include
-                                        #../components/ui/include
-                                        #../components/ui/backend/include
-                                        #../components/ui/screens/include
-                                        #../components/ui/screens/danfoss/include
-                                        #../components/ui/components/include
-                                        # Add more include directories as needed
+                                        ../../include
                                         )
 
 link_directories(
