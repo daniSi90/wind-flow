@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include "wind_flow.h"
 
-#if 0
+#ifdef CONFIG_IDF_TARGET
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #if 1
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #else
@@ -48,10 +50,12 @@
 static const char *TAG = "wf";
 
 /* Private macro -------------------------------------------------------------*/
-#if 0
+#ifdef CONFIG_IDF_TARGET
+#define WF_LOGD(format, ...) ESP_LOGD(TAG, format, ##__VA_ARGS__)
 #define WF_LOGI(format, ...) ESP_LOGI(TAG, format, ##__VA_ARGS__)
 #define WF_LOGE(format, ...) ESP_LOGE(TAG, format, ##__VA_ARGS__)
 #define WF_LOGW(format, ...) ESP_LOGW(TAG, format, ##__VA_ARGS__)
+#define WF_SLEEP_MS(ms)      vTaskDelay(pdMS_TO_TICKS(ms))
 #else
 #define WF_LOGD(format, ...)
 #define WF_LOGI(format, ...) printf(format, ##__VA_ARGS__)
@@ -118,12 +122,28 @@ wf_list_add_unwind_config(wf_list_t *p_list, wf_config_t *p_config)
     return true;
 }
 
+bool
+wf_list_event_done(uint8_t level)
+{
+    if (wf_handle.p_list_current == NULL)
+    {
+        WF_LOGE("List is empty\n");
+        return false;
+    }
+    if (wf_handle.p_list_current->level != level)
+    {
+        return false;
+    }
+    wf_handle.p_list_current->_event_done = true;
+    return true;
+}
+
 wf_list_t *
 wf_list_execute(void)
 {
     if (wf_handle.p_list_current == NULL)
     {
-        WF_LOGI("List is empty\n");
+        WF_LOGD("List is empty\n");
         return wf_handle.p_list_current;
     }
     wf_handle.level_current = wf_handle.p_list_current->level;

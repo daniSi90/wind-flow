@@ -1,7 +1,7 @@
 #set(priv_requires "log" "freertos" "esp_http_client" "esp-tls" "esp_https_ota" "app_update")
 
 #set(requires "esp_event") 
-set(srcs "src/cycle_master.c" 
+set(srcs "src/wind_flow.c" 
     )
 
 if(DEFINED ENV{IDF_PATH})

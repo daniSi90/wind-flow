@@ -45,7 +45,7 @@ extern "C" {
 #define WF_CYCLE_RETRY_COUNTS_DEFAULT  3 /**< Default number of retries for cycling */
 #define WF_UNWIND_RETRY_COUNTS_DEFAULT 3 /**< Default number of retries for unwinding */
 
-#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_fp, _p_list)                    \
+#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_p_list, _fp, _return)           \
     do                                                                \
     {                                                                 \
         wf_config_t config           = {};                            \
@@ -56,11 +56,11 @@ extern "C" {
         if (wf_list_add_wind_config(_p_list, &config) != true)        \
         {                                                             \
             printf("Failed to add wind init configuration\n");        \
-            return false;                                             \
+            return _return;                                           \
         }                                                             \
     } while (0);
 
-#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_fp, _p_list)                    \
+#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_p_list, _fp, _return)           \
     do                                                                 \
     {                                                                  \
         wf_config_t config           = {};                             \
@@ -72,7 +72,7 @@ extern "C" {
         if (wf_list_add_unwind_config(_p_list, &config) != true)       \
         {                                                              \
             printf("Failed to add wind init configuration\n");         \
-            return false;                                              \
+            return _return;                                            \
         }                                                              \
     } while (0);
 
@@ -91,6 +91,8 @@ typedef struct
     wf_list_t *p_list_current;
     bool       has_failed;
     uint8_t    level_current; /**< Current level of the state machine */
+    // uint8_t    level_wind;    /**< Level to wind to */
+    uint8_t level_unwind; /**< Level to unwind to */
 } wf_handle_t;
 
 typedef struct
@@ -111,11 +113,14 @@ typedef struct wf_list_t
     wf_config_t config_wind;   /**< Function parameters to be executed when a specific initialization is required */
     wf_config_t config_unwind; /**< Function parameters to be executed when a specific deinitialization is required */
     uint8_t     level;         /**< Level of the state machine */
+    bool        event_wait;    /**< If set to true, the state machine will wait for the event to be set before executing the next configuration */
+    bool        _event_done;   /**< If set to true, the event has been set, internal use */
 } wf_list_t;
 
 wf_list_t *wf_list_add_next(wf_list_t *p_list);
 bool       wf_list_add_wind_config(wf_list_t *p_list, wf_config_t *p_config);
 bool       wf_list_add_unwind_config(wf_list_t *p_list, wf_config_t *p_config);
+bool       wf_list_event_done(uint8_t level);
 wf_list_t *wf_list_execute(void);
 
 #ifdef __cplusplus
