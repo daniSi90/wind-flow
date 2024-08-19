@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(c-tb-cycle-master VERSION 0.1.0 LANGUAGES C)
+project(cm-example-1 VERSION 0.1.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
@@ -11,8 +11,8 @@ enable_testing()
 #FILE(GLOB_RECURSE LVGL_Sources CONFIGURE_DEPENDS ../components/lvgl/*.c)
 #FILE(GLOB_RECURSE UI_Sources CONFIGURE_DEPENDS ../components/ui/*.c)
 
-add_executable(c-tb-cycle-master main.c
-                            cycle_master/cycle_master.c
+add_executable(cm-example-1 main.c
+                            ../../cycle_master/cycle_master.c
                             #fault_handler.c
                             # ../lwjson.c
                             # ../lwjson_debug.c
@@ -32,10 +32,10 @@ endif (WIN32)
 # SETUP INCLUDE AND LINK DIRS:
 
  # Add include directories
-target_include_directories(c-tb-cycle-master PRIVATE
+target_include_directories(cm-example-1 PRIVATE
                                         #${SDL2_INCLUDE_DIR}
                                         #${CMAKE_SOURCE_DIR}/components/lvgl_drv/include
-                                        cycle_master/include
+                                        ../../cycle_master/include
                                         # ../include
                                         #../components/lvgl
                                         #../components/alledio/include
@@ -66,7 +66,7 @@ endif (WIN32)
 
 
 # Add the preprocessor definition "DEVICE_SIMULATOR"
-#target_compile_definitions(c-tb-cycle-master PRIVATE DEVICE_SIMULATOR CONFIG_VENDOR_DANFOSS)
+#target_compile_definitions(cm-example-1 PRIVATE DEVICE_SIMULATOR CONFIG_VENDOR_DANFOSS)
 
 #add_compile_definitions(LV_CONF_PATH=${CMAKE_SOURCE_DIR}/components/lvgl_drv/include/lv_conf.h)
 
