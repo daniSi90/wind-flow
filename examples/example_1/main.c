@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <windows.h>
-// #include <sys/select.h>
+//#include <windows.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include "wind_flow.h"
 
@@ -30,55 +30,55 @@ main(void)
     function_start();
 
     uint8_t cnt = 0;
-    while (cnt++ < 5)
+    while (1)
     {
         if (wf_list_execute() == NULL)
         {
             return true;
         }
-        // printf("#############\n");
-        // Sleep(50);
+        //Sleep(50);
 
-        // // Initialize the file descriptor set
-        // FD_ZERO(&readfds);
-        // FD_SET(STDIN_FILENO, &readfds);
+        // Initialize the file descriptor set
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
 
-        // // Set timeout duration (e.g., 10 seconds)
-        // timeout.tv_sec  = 1;
-        // timeout.tv_usec = 0;
+        // Set timeout duration (e.g., 10 seconds)
+        timeout.tv_sec  = 1;
+        timeout.tv_usec = 0;
 
-        // printf("Enter a command: ");
-        // fflush(stdout);
+        fflush(stdout);
 
-        // int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+        int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
 
-        // if (result > 0)
-        // {
-        //     if (FD_ISSET(STDIN_FILENO, &readfds))
-        //     {
-        //         // Read input from user
-        //         if (scanf("%99s", input) == 1)
-        //         {
-        //             // Compare input to known commands
-        //             if (strcmp(input, "command1") == 0)
-        //             {
-        //                 // command_one();
-        //             }
-        //             else if (strcmp(input, "command2") == 0)
-        //             {
-        //                 // command_two();
-        //             }
-        //             else if (strcmp(input, "command3") == 0)
-        //             {
-        //                 // command_three();
-        //             }
-        //             else
-        //             {
-        //                 // unknown_command();
-        //             }
-        //         }
-        //     }
-        // }
+        if (result > 0)
+        {
+            if (FD_ISSET(STDIN_FILENO, &readfds))
+            {
+                // Read input from user
+                if (scanf("%99s", input) == 1)
+                {
+                    // Compare input to known commands
+                    if (strcmp(input, "q") == 0)
+                    {
+                        printf("Exiting...\n");
+                        break;
+                    }
+                    else if (strcmp(input, "d2") == 0)
+                    {
+                        printf("fn2 set to done\n");
+                        wf_list_event_done(2);
+                    }
+                    else if (strcmp(input, "command3") == 0)
+                    {
+                        // command_three();
+                    }
+                    else
+                    {
+                        // unknown_command();
+                    }
+                }
+            }
+        }
     }
     return false;
 }
