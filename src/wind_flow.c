@@ -86,10 +86,12 @@ wf_list_add_next(wf_list_t *p_list)
         p_list->next          = p_list_next;
         p_list_next->previous = p_list;
         p_list_next->level    = p_list->level + 1;
+        wf_handle.level_set = p_list->level + 1;
     }
     else
     {
         wf_handle.p_list_current = p_list_next; /// When input list is NULL this means its the begginning of the list
+        wf_handle.level_current = -1;
     }
     WF_LOGD("add next: level %d\n", p_list_next->level);
 
@@ -138,15 +140,52 @@ wf_list_event_done(uint8_t level)
     return true;
 }
 
+bool wf_is_busy(void)
+{
+    return wf_handle.p_list_current != NULL;
+}
+
+int8_t wf_list_wind(void)
+{
+    if (wf_handle.p_list_current != NULL)
+    {
+        return wf_handle.p_list_current->level;
+    }
+    wf_handle.wind = true;
+    return -1;
+}
+
+int8_t wf_list_unwind(void)
+{
+    if (wf_handle.p_list_current != NULL)
+    {
+        return wf_handle.p_list_current->level;
+    }
+    wf_handle.unwind = true;
+    return -1;
+}
+
 wf_list_t *
 wf_list_execute(void)
 {
+    if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND)) /// Handle if WINDING is triggered
+    {
+        WF_LOGI("Unwinding triggered\n");
+        wf_handle.p_list_current = wf_handle.p_list_previous;
+        wf_handle.dir = WF_DIR_WIND;
+        wf_handle.wind = false;
+    }
+    else if (wf_handle.unwind && (wf_handle.dir != WF_DIR_UNWIND)) /// Handle if UNWINDING is triggered
+    {
+        wf_handle.p_list_current = wf_handle.p_list_previous;
+        wf_handle.dir = WF_DIR_UNWIND;
+        wf_handle.unwind = false;
+    }
+
     if (wf_handle.p_list_current == NULL)
     {
-        // WF_LOGD("List is empty\n");
         return wf_handle.p_list_current;
     }
-    wf_handle.level_current = wf_handle.p_list_current->level;
 
     if (wf_handle.dir == WF_DIR_WIND)
     {
@@ -172,6 +211,8 @@ wf_list_execute(void)
                     wf_handle.p_list_current->config_wind._retries_cnt = 0;
                     wf_handle.dir                                      = WF_DIR_UNWIND;
                     wf_handle.has_failed                               = true;
+                    wf_handle.level_current--;
+                    wf_handle.p_list_previous = wf_handle.p_list_current;
                     return wf_handle.p_list_current                    = wf_handle.p_list_current->previous;
                 }
                 WF_SLEEP_MS(wf_handle.p_list_current->config_wind.delay_ms);
@@ -180,6 +221,8 @@ wf_list_execute(void)
             wf_handle.p_list_current->_wind_done = true;
             if (wf_handle.p_list_current->event_wait != true) /// Continiue to next if no event is needed, otherwise wait
             {
+                wf_handle.level_current++;
+                wf_handle.p_list_previous = wf_handle.p_list_current;
                 wf_handle.p_list_current = wf_handle.p_list_current->next;
             }
         }
@@ -211,6 +254,7 @@ wf_list_execute(void)
                 }
                 return wf_handle.p_list_current;
             }
+            wf_handle.p_list_previous = wf_handle.p_list_current;
             wf_handle.p_list_current = wf_handle.p_list_current->previous;
         }
         else

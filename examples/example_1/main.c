@@ -15,10 +15,18 @@ static bool function_1_init(wf_list_t *list, void *p_args);
 static bool function_1_deinit(wf_list_t *list, void *p_args);
 static bool function_2_init(wf_list_t *list, void *p_args);
 static bool function_2_deinit(wf_list_t *list, void *p_args);
-static bool function_3_init(wf_list_t *list, void *p_args);
-static bool function_3_deinit(wf_list_t *list, void *p_args);
-static bool function_4_init(wf_list_t *list, void *p_args);
-static bool function_4_deinit(wf_list_t *list, void *p_args);
+static bool function_3a_init(wf_list_t *list, void *p_args);
+static bool function_3a_deinit(wf_list_t *list, void *p_args);
+static bool function_4a_init(wf_list_t *list, void *p_args);
+static bool function_4a_deinit(wf_list_t *list, void *p_args);
+static bool function_3b_init(wf_list_t *list, void *p_args);
+static bool function_3b_deinit(wf_list_t *list, void *p_args);
+static bool function_4b_init(wf_list_t *list, void *p_args);
+static bool function_4b_deinit(wf_list_t *list, void *p_args);
+static bool function_5b_init(wf_list_t *list, void *p_args);
+static bool function_5b_deinit(wf_list_t *list, void *p_args);
+
+static bool go_a_path = true;
 
 bool
 main(void)
@@ -34,7 +42,7 @@ main(void)
     {
         if (wf_list_execute() == NULL)
         {
-            return true;
+            
         }
         //Sleep(50);
 
@@ -63,14 +71,27 @@ main(void)
                         printf("Exiting...\n");
                         break;
                     }
-                    else if (strcmp(input, "d2") == 0)
+                    else if (strcmp(input, "d") == 0)
                     {
-                        printf("fn2 set to done\n");
+                        printf("Event done...\n");
                         wf_list_event_done(2);
                     }
-                    else if (strcmp(input, "command3") == 0)
+                    else if (strcmp(input, "w") == 0)
                     {
-                        // command_three();
+                        printf("Winding...\n");	
+                        int8_t stat = wf_list_wind();
+                        printf("Winding status: %d\n", stat);
+                    }
+                    else if (strcmp(input, "u") == 0)
+                    {
+                        printf("Unwinding...\n");	
+                        int8_t stat = wf_list_unwind();
+                        printf("Unwinding status: %d\n", stat);
+                    }
+                    else if (strcmp(input, "p") == 0)
+                    {
+                        go_a_path = !go_a_path;
+                        printf("path - %c\n", go_a_path ? 'A' : 'B');
                     }
                     else
                     {
@@ -154,8 +175,14 @@ function_2_init(wf_list_t *list, void *p_args)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_3_init);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_3_deinit);
+    if (go_a_path)
+    {
+        WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_3a_init);
+        WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_3a_deinit);
+    } else {
+        WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_3b_init);
+        WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_3b_deinit);
+    }
 
     return true;
 }
@@ -166,43 +193,94 @@ function_2_deinit(wf_list_t *list, void *p_args)
     return true;
 }
 
-uint8_t cnt_config3 = 0;
 static bool
-function_3_init(wf_list_t *list, void *p_args)
+function_3a_init(wf_list_t *list, void *p_args)
 {
-    printf("> function_3_init\n");
-
-    if (cnt_config3++ < 5)
-    {
-        return false;
-    }
+    printf("> function_3A_init\n");
 
     wf_list_t *p_list = wf_list_add_next(list);
     if (p_list == NULL)
     {
         return false;
     }
-    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_4_init);
-    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_4_deinit);
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_4a_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_4a_deinit);
 
     return true;
 }
 static bool
-function_3_deinit(wf_list_t *list, void *p_args)
+function_3a_deinit(wf_list_t *list, void *p_args)
 {
-    printf("> function_3_deinit\n");
+    printf("> function_3A_deinit\n");
     return true;
 }
 
 static bool
-function_4_init(wf_list_t *list, void *p_args)
+function_4a_init(wf_list_t *list, void *p_args)
 {
-    printf("> function_4_init\n");
+    printf("> function_4A_init\n");
     return true;
 }
 static bool
-function_4_deinit(wf_list_t *list, void *p_args)
+function_4a_deinit(wf_list_t *list, void *p_args)
 {
-    printf("> function_4_deinit\n");
+    printf("> function_4A_deinit\n");
+    return true;
+}
+
+static bool
+function_3b_init(wf_list_t *list, void *p_args)
+{
+    printf("> function_3B_init\n");
+
+    wf_list_t *p_list = wf_list_add_next(list);
+    if (p_list == NULL)
+    {
+        return false;
+    }
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_4b_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_4b_deinit);
+
+    return true;
+}
+static bool
+function_3b_deinit(wf_list_t *list, void *p_args)
+{
+    printf("> function_3B_deinit\n");
+    return true;
+}
+
+static bool
+function_4b_init(wf_list_t *list, void *p_args)
+{
+    printf("> function_4B_init\n");
+
+    wf_list_t *p_list = wf_list_add_next(list);
+    if (p_list == NULL)
+    {
+        return false;
+    }
+    WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_5b_init);
+    WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_5b_deinit);
+    return true;
+}
+static bool
+function_4b_deinit(wf_list_t *list, void *p_args)
+{
+    printf("> function_4B_deinit\n");
+    return true;
+}
+
+static bool
+function_5b_init(wf_list_t *list, void *p_args)
+{
+    printf("> function_5B_init\n");
+
+    return true;
+}
+static bool
+function_5b_deinit(wf_list_t *list, void *p_args)
+{
+    printf("> function_5B_deinit\n");
     return true;
 }
