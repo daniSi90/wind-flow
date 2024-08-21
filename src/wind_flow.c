@@ -161,12 +161,14 @@ wf_list_wind(void)
 int8_t
 wf_list_unwind(void)
 {
-    if (wf_handle.p_list_current != NULL)
-    {
-        return wf_handle.p_list_current->level;
-    }
+    // if (wf_handle.p_list_current != NULL)
+    // {
+    //     return wf_handle.p_list_current->level;
+    // }
+    // wf_handle.unwind = true;
+    // return -1;
     wf_handle.unwind = true;
-    return -1;
+    return wf_handle.p_list_current->level;
 }
 
 wf_list_t *
@@ -185,10 +187,12 @@ wf_list_execute(void)
         wf_handle.wind = false;
     }
     /// Handle if UNWINDING is triggered
-    else if (wf_handle.unwind && (wf_handle.dir != WF_DIR_UNWIND) && (wf_handle.level_current != WF_LEVEL_NULL))
+    if (wf_handle.unwind && (wf_handle.level_current != WF_LEVEL_NULL))
     {
-        WF_LOGI("WIND triggered\n");
-        wf_handle.p_list_current = wf_handle.p_list_previous;
+        WF_LOGI("UNWIND triggered\n");
+        if (!wf_handle.p_list_current->_wind_done){
+            wf_handle.p_list_current = wf_handle.p_list_previous;
+        }
         wf_handle.dir            = WF_DIR_UNWIND;
         wf_handle.unwind         = false;
     }
@@ -243,10 +247,11 @@ wf_list_execute(void)
             {
                 wf_handle.retry_cnt++;
             }
-            if (wf_handle.p_list_current->event_wait != true) /// Continiue to next if no event is needed, otherwise wait
+            if (wf_handle.p_list_current->event_wait != true) /// Continue to next if no event is needed, otherwise wait
             {
                 wf_handle.level_current++;
                 wf_handle.p_list_previous = wf_handle.p_list_current;
+                wf_handle.p_list_current->_wind_done = false;
                 wf_handle.p_list_current  = wf_handle.p_list_current->next;
                 if (wf_handle.p_list_current == NULL)
                 {
