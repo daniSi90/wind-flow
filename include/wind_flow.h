@@ -85,9 +85,11 @@ typedef enum
 
 typedef struct wf_list_t wf_list_t;
 typedef bool (*fp_call_t)(wf_list_t *, void *);
+typedef bool (*fp_init_call_t)(void);
 
 typedef struct
 {
+    fp_init_call_t fp_init; /**< Function pointer to be called */
     wf_dir_t   dir;
     wf_list_t *p_list_current;
     wf_list_t *p_list_previous;
@@ -122,6 +124,7 @@ typedef struct wf_list_t
     bool        _event_done;   /**< If set to true, the event has been set, internal use */
 } wf_list_t;
 
+bool wf_handle_init(fp_init_call_t fp_init);
 wf_list_t *wf_list_add_next(wf_list_t *p_list);
 bool       wf_list_add_wind_config(wf_list_t *p_list, wf_config_t *p_config);
 bool       wf_list_add_unwind_config(wf_list_t *p_list, wf_config_t *p_config);

@@ -35,8 +35,8 @@ main(void)
     struct timeval timeout;
     fd_set         readfds;
 
-    function_start();
-
+    wf_handle_init(function_start);
+    
     uint8_t cnt = 0;
     while (1)
     {
@@ -69,10 +69,15 @@ main(void)
                         printf("# Exiting...\n");
                         break;
                     }
-                    else if (strcmp(input, "d") == 0)
+                    else if (strcmp(input, "d2") == 0)
                     {
                         printf("# Event done...\n");
                         wf_list_event_done(2);
+                    }
+                    else if (strcmp(input, "d0") == 0)
+                    {
+                        printf("# Event done...\n");
+                        wf_list_event_done(0);
                     }
                     else if (strcmp(input, "w") == 0)
                     {
@@ -113,6 +118,7 @@ function_start(void)
     }
     WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_0_init);
     WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_0_deinit);
+    WF_NEXT_WAIT_FOR_EVENT(p_list);
 }
 
 static bool

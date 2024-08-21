@@ -67,15 +67,29 @@ static const char *TAG = "wf";
 
 static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT };
 
+bool wf_handle_init(fp_init_call_t fp_init)
+{
+    if (fp_init == NULL)
+    {
+        WF_LOGE("Invalid parameters\n");
+        return false;
+    }
+
+    wf_handle.fp_init = fp_init;
+    return true;
+}
+
 void
 wf_handle_set_period(uint32_t period_ms)
 {
     wf_handle.update_period = period_ms;
 }
+
 wf_list_t *
 wf_list_add_next(wf_list_t *p_list)
 {
     wf_list_t *p_list_next = malloc(sizeof(wf_list_t));
+    //printf("## malloc - %p\n", p_list_next);
     if (p_list_next == NULL)
     {
         WF_LOGE("Failed to allocate memory for connectivity list\n");
@@ -162,7 +176,13 @@ int8_t
 wf_list_unwind(void)
 {
     wf_handle.unwind = true;
-    return (wf_handle.p_list_current != NULL) ? wf_handle.p_list_current->level : WF_LEVEL_NULL;
+    if (wf_handle.p_list_current != NULL)
+    {
+        wf_handle.p_list_current->_event_done = false;
+        return wf_handle.p_list_current->level;
+    }
+    
+    return WF_LEVEL_NULL;
 }
 
 wf_list_t *
@@ -174,7 +194,12 @@ wf_list_execute(void)
     if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND))
     {
         WF_LOGI("WIND triggered\n");
+        if (wf_handle.p_list_current == NULL && (wf_handle.p_list_previous == NULL))
+        {
+            wf_handle.fp_init();
+        }
         wf_handle.p_list_current = wf_handle.p_list_previous;
+        
         wf_handle.dir            = WF_DIR_WIND;
         wf_handle.wind           = false;
     }
@@ -235,7 +260,6 @@ wf_list_execute(void)
                         wf_handle.p_list_current->config_wind._retries_cnt = 0;
                         wf_handle.dir                                      = WF_DIR_UNWIND;
                         wf_handle.has_failed                               = true;
-                        // wf_handle.level_current--;
                         wf_handle.p_list_previous       = wf_handle.p_list_current;
                         return wf_handle.p_list_current = wf_handle.p_list_current->previous;
                     }
@@ -287,6 +311,15 @@ wf_list_execute(void)
             }
             wf_handle.p_list_previous = wf_handle.p_list_current;
             wf_handle.p_list_current  = wf_handle.p_list_current->previous;
+            if (wf_handle.p_list_current != NULL)
+            {
+                free(wf_handle.p_list_current->next); /// When we go back free is needed
+                wf_handle.p_list_current->next = NULL;
+            }
+            else {
+                free(wf_handle.p_list_previous); /// When we go back free is needed
+                wf_handle.p_list_previous = NULL;
+            }
             wf_handle.level_current   = (wf_handle.p_list_current == NULL) ? WF_LEVEL_NULL : wf_handle.level_current; /// Check if bottom is reached and set level to NULL
         }
         else
