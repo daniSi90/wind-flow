@@ -45,35 +45,33 @@ extern "C" {
 #define WF_CYCLE_RETRY_COUNTS_DEFAULT  3 /**< Default number of retries for cycling */
 #define WF_UNWIND_RETRY_COUNTS_DEFAULT 3 /**< Default number of retries for unwinding */
 
-#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_p_list, _fp)                    \
-    do                                                                \
-    {                                                                 \
-        wf_config_t config           = {};                            \
-        config.between_retries_delay = 0;                             \
-        config.delay_ms              = 0;                             \
-        config.fp_call               = _fp;                           \
-        config.retries_max           = WF_CYCLE_RETRY_COUNTS_DEFAULT; \
-        if (wf_list_add_wind_config(_p_list, &config) != true)        \
-        {                                                             \
-            printf("Failed to add wind init configuration\n");        \
-            return false;                                             \
-        }                                                             \
+#define WF_NEXT_CONFIG_CYCLE_DEFAULT(_p_list, _fp)             \
+    do                                                         \
+    {                                                          \
+        wf_config_t config   = {};                             \
+        config.n_skip_period = 0;                              \
+        config.fp_call       = _fp;                            \
+        config.retries_max   = WF_CYCLE_RETRY_COUNTS_DEFAULT;  \
+        if (wf_list_add_wind_config(_p_list, &config) != true) \
+        {                                                      \
+            printf("Failed to add wind init configuration\n"); \
+            return false;                                      \
+        }                                                      \
     } while (0);
 
-#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_p_list, _fp)                    \
-    do                                                                 \
-    {                                                                  \
-        wf_config_t config           = {};                             \
-        config.between_retries_delay = 0;                              \
-        config.delay_ms              = 0;                              \
-        config.fp_call               = _fp;                            \
-        config.retries_max           = WF_UNWIND_RETRY_COUNTS_DEFAULT; \
-        config.level_safe            = 0xff;                           \
-        if (wf_list_add_unwind_config(_p_list, &config) != true)       \
-        {                                                              \
-            printf("Failed to add wind init configuration\n");         \
-            return false;                                              \
-        }                                                              \
+#define WF_NEXT_CONFIG_UNWIND_DEFAULT(_p_list, _fp)              \
+    do                                                           \
+    {                                                            \
+        wf_config_t config   = {};                               \
+        config.n_skip_period = 0;                                \
+        config.fp_call       = _fp;                              \
+        config.retries_max   = WF_UNWIND_RETRY_COUNTS_DEFAULT;   \
+        config.level_safe    = 0xff;                             \
+        if (wf_list_add_unwind_config(_p_list, &config) != true) \
+        {                                                        \
+            printf("Failed to add wind init configuration\n");   \
+            return false;                                        \
+        }                                                        \
     } while (0);
 
 #define WF_NEXT_WAIT_FOR_EVENT(_p_list) _p_list->event_wait = true;
@@ -92,22 +90,23 @@ typedef struct
     wf_dir_t   dir;
     wf_list_t *p_list_current;
     wf_list_t *p_list_previous;
+    uint32_t   update_period; /**< Update period in milliseconds */
+    uint32_t   retry_cnt;
     bool       has_failed;
     bool       wind;
     bool       unwind;
-    int8_t    level_current; /**< Current level of the state machine */
-    int8_t    level_set; /**< Level to unwind to */
+    int8_t     level_current; /**< Current level of the state machine */
+    int8_t     level_set;     /**< Level to unwind to */
 } wf_handle_t;
 
 typedef struct
 {
-    uint8_t   retries_max;           /**< Number of retries */
-    uint32_t  delay_ms;              /**< Delay in milliseconds */
-    uint32_t  between_retries_delay; /**< Delay between retries */
-    fp_call_t fp_call;               /**< Function pointer to be called */
-    void     *p_args;                /**< Arguments to be passed to the function */
-    uint8_t   _retries_cnt;          /**< Retries counter, for internal use only */
-    uint8_t   level_safe;            /**< If function dont success unwind until this level */
+    uint8_t   retries_max;   /**< Number of retries */
+    uint32_t  n_skip_period; /**< N skip periods (delay between retries) */
+    fp_call_t fp_call;       /**< Function pointer to be called */
+    void     *p_args;        /**< Arguments to be passed to the function */
+    uint8_t   _retries_cnt;  /**< Retries counter, for internal use only */
+    uint8_t   level_safe;    /**< If function dont success unwind until this level */
 } wf_config_t;
 
 typedef struct wf_list_t
@@ -126,9 +125,9 @@ wf_list_t *wf_list_add_next(wf_list_t *p_list);
 bool       wf_list_add_wind_config(wf_list_t *p_list, wf_config_t *p_config);
 bool       wf_list_add_unwind_config(wf_list_t *p_list, wf_config_t *p_config);
 bool       wf_list_event_done(uint8_t level);
-bool wf_is_busy(void);
-int8_t wf_list_wind(void);
-int8_t wf_list_unwind(void);
+bool       wf_is_busy(void);
+int8_t     wf_list_wind(void);
+int8_t     wf_list_unwind(void);
 wf_list_t *wf_list_execute(void);
 
 #ifdef __cplusplus
