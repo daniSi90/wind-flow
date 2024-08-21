@@ -91,7 +91,7 @@ wf_list_add_next(wf_list_t *p_list)
     else
     {
         wf_handle.p_list_previous = p_list_next; /// When input list is NULL this means its the beginning of the list
-        wf_handle.level_current  = -1;
+        wf_handle.level_current   = -1;
     }
     WF_LOGD("add next: level %d\n", p_list_next->level);
 

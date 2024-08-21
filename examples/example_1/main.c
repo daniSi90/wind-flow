@@ -40,10 +40,8 @@ main(void)
     uint8_t cnt = 0;
     while (1)
     {
-        if (wf_list_execute() == NULL)
-        {
-            
-        }
+        wf_list_execute();
+
         //Sleep(50);
 
         // Initialize the file descriptor set
@@ -68,30 +66,30 @@ main(void)
                     // Compare input to known commands
                     if (strcmp(input, "q") == 0)
                     {
-                        printf("Exiting...\n");
+                        printf("# Exiting...\n");
                         break;
                     }
                     else if (strcmp(input, "d") == 0)
                     {
-                        printf("Event done...\n");
+                        printf("# Event done...\n");
                         wf_list_event_done(2);
                     }
                     else if (strcmp(input, "w") == 0)
                     {
-                        printf("Winding...\n");	
+                        printf("# Winding...\n");	
                         int8_t stat = wf_list_wind();
                         printf("Winding status: %d\n", stat);
                     }
                     else if (strcmp(input, "u") == 0)
                     {
-                        printf("Unwinding...\n");	
+                        printf("# Unwinding...\n");	
                         int8_t stat = wf_list_unwind();
-                        printf("Unwinding status: %d\n", stat);
+                        printf("# Unwinding status: %d\n", stat);
                     }
                     else if (strcmp(input, "p") == 0)
                     {
                         go_a_path = !go_a_path;
-                        printf("path - %c\n", go_a_path ? 'A' : 'B');
+                        printf("# path - %c\n", go_a_path ? 'A' : 'B');
                     }
                     else
                     {

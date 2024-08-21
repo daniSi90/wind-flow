@@ -78,8 +78,9 @@ extern "C" {
 
 typedef enum
 {
-    WF_DIR_WIND = 0,
-    WF_DIR_UNWIND,
+    WF_DIR_UNDEFINED = 0, /**< Undefined direction */
+    WF_DIR_WIND,          /**< Wind direction */
+    WF_DIR_UNWIND,        /**< Unwind direction */
 } wf_dir_t;
 
 typedef struct wf_list_t wf_list_t;
