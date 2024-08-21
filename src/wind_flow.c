@@ -63,6 +63,7 @@ static const char *TAG = "wf";
 #endif
 
 #define RETRY_CNT_DEFAULT 0xffffffff /**< Default value for the retry_cnt to make sure it enters at first retry */
+#define WF_LEVEL_NULL     -1         /**< Default value for the level */
 
 static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT };
 
@@ -91,7 +92,7 @@ wf_list_add_next(wf_list_t *p_list)
     else
     {
         wf_handle.p_list_previous = p_list_next; /// When input list is NULL this means its the beginning of the list
-        wf_handle.level_current   = -1;
+        wf_handle.level_current   = WF_LEVEL_NULL;
     }
     WF_LOGD("add next: level %d\n", p_list_next->level);
 
@@ -171,18 +172,29 @@ wf_list_unwind(void)
 wf_list_t *
 wf_list_execute(void)
 {
-    if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND)) /// Handle if WINDING is triggered
+    /// Handle if WINDING is triggered
+    if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND))
     {
-        WF_LOGI("Unwinding triggered\n");
+        WF_LOGI("WIND triggered\n");
         wf_handle.p_list_current = wf_handle.p_list_previous;
         wf_handle.dir            = WF_DIR_WIND;
         wf_handle.wind           = false;
     }
-    else if (wf_handle.unwind && (wf_handle.dir != WF_DIR_UNWIND)) /// Handle if UNWINDING is triggered
+    else if (wf_handle.wind)
     {
+        wf_handle.wind = false;
+    }
+    /// Handle if UNWINDING is triggered
+    else if (wf_handle.unwind && (wf_handle.dir != WF_DIR_UNWIND) && (wf_handle.level_current != WF_LEVEL_NULL))
+    {
+        WF_LOGI("WIND triggered\n");
         wf_handle.p_list_current = wf_handle.p_list_previous;
         wf_handle.dir            = WF_DIR_UNWIND;
         wf_handle.unwind         = false;
+    }
+    else if (wf_handle.unwind)
+    {
+        wf_handle.unwind = false;
     }
 
     if (wf_handle.p_list_current == NULL)
@@ -236,11 +248,11 @@ wf_list_execute(void)
                 wf_handle.level_current++;
                 wf_handle.p_list_previous = wf_handle.p_list_current;
                 wf_handle.p_list_current  = wf_handle.p_list_current->next;
+                if (wf_handle.p_list_current == NULL)
+                {
+                    WF_LOGI("End of list\n");
+                }
             }
-        }
-        else
-        {
-            WF_LOGI("END OF LIST\n");
         }
     }
     else if (wf_handle.dir == WF_DIR_UNWIND)
@@ -271,7 +283,7 @@ wf_list_execute(void)
         }
         else
         {
-            WF_LOGI("Doesnt contain deinit function or at end\n");
+            WF_LOGI("doesn't contain deinit function or at end\n");
         }
     }
 
