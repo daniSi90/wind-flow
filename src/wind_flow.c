@@ -161,19 +161,15 @@ wf_list_wind(void)
 int8_t
 wf_list_unwind(void)
 {
-    // if (wf_handle.p_list_current != NULL)
-    // {
-    //     return wf_handle.p_list_current->level;
-    // }
-    // wf_handle.unwind = true;
-    // return -1;
     wf_handle.unwind = true;
-    return wf_handle.p_list_current->level;
+    return (wf_handle.p_list_current != NULL) ? wf_handle.p_list_current->level : WF_LEVEL_NULL;
 }
 
 wf_list_t *
 wf_list_execute(void)
 {
+    // WF_LOGI("level %d\n", wf_handle.level_current);
+
     /// Handle if WINDING is triggered
     if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND))
     {
@@ -190,11 +186,16 @@ wf_list_execute(void)
     if (wf_handle.unwind && (wf_handle.level_current != WF_LEVEL_NULL))
     {
         WF_LOGI("UNWIND triggered\n");
-        if (!wf_handle.p_list_current->_wind_done){
+        if (wf_handle.p_list_current == NULL)
+        {
             wf_handle.p_list_current = wf_handle.p_list_previous;
         }
-        wf_handle.dir            = WF_DIR_UNWIND;
-        wf_handle.unwind         = false;
+        else if (!wf_handle.p_list_current->_wind_done)
+        {
+            wf_handle.p_list_current = wf_handle.p_list_previous;
+        }
+        wf_handle.dir    = WF_DIR_UNWIND;
+        wf_handle.unwind = false;
     }
     else if (wf_handle.unwind)
     {
@@ -205,6 +206,7 @@ wf_list_execute(void)
     {
         return wf_handle.p_list_current;
     }
+    wf_handle.level_current = wf_handle.p_list_current->level;
 
     if (wf_handle.dir == WF_DIR_WIND)
     {
@@ -233,7 +235,7 @@ wf_list_execute(void)
                         wf_handle.p_list_current->config_wind._retries_cnt = 0;
                         wf_handle.dir                                      = WF_DIR_UNWIND;
                         wf_handle.has_failed                               = true;
-                        wf_handle.level_current--;
+                        // wf_handle.level_current--;
                         wf_handle.p_list_previous       = wf_handle.p_list_current;
                         return wf_handle.p_list_current = wf_handle.p_list_current->previous;
                     }
@@ -249,10 +251,10 @@ wf_list_execute(void)
             }
             if (wf_handle.p_list_current->event_wait != true) /// Continue to next if no event is needed, otherwise wait
             {
-                wf_handle.level_current++;
-                wf_handle.p_list_previous = wf_handle.p_list_current;
+                // wf_handle.level_current++;
+                wf_handle.p_list_previous            = wf_handle.p_list_current;
                 wf_handle.p_list_current->_wind_done = false;
-                wf_handle.p_list_current  = wf_handle.p_list_current->next;
+                wf_handle.p_list_current             = wf_handle.p_list_current->next;
                 if (wf_handle.p_list_current == NULL)
                 {
                     WF_LOGI("End of list\n");
@@ -285,6 +287,7 @@ wf_list_execute(void)
             }
             wf_handle.p_list_previous = wf_handle.p_list_current;
             wf_handle.p_list_current  = wf_handle.p_list_current->previous;
+            wf_handle.level_current   = (wf_handle.p_list_current == NULL) ? WF_LEVEL_NULL : wf_handle.level_current; /// Check if bottom is reached and set level to NULL
         }
         else
         {
