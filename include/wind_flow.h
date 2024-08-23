@@ -122,7 +122,7 @@ typedef struct
     fp_call_t fp_call;       /**< Function pointer to be called */
     void     *p_args;        /**< Arguments to be passed to the function */
     uint8_t   _retries_cnt;  /**< Retries counter, for internal use only */
-    uint8_t   level_safe;    /**< If function dont success unwind until this level */
+    int8_t    level_safe;    /**< If function dont success unwind until this level */
 } wf_config_t;
 
 typedef struct wf_list_t
@@ -131,7 +131,7 @@ typedef struct wf_list_t
     wf_list_t  *next;          /**< Pointer to the next element in the list */
     wf_config_t config_wind;   /**< Function parameters to be executed when a specific initialization is required */
     wf_config_t config_unwind; /**< Function parameters to be executed when a specific deinitialization is required */
-    uint8_t     level;         /**< Level of the state machine */
+    int8_t      level;         /**< Level of the state machine */
     bool        event_wait;    /**< If set to true, the state machine will wait for the event to be set before executing the next configuration */
     bool        _wind_done;    /**< If set to true, the wind configuration has been executed */
     bool        _event_done;   /**< If set to true, the event has been set, internal use */

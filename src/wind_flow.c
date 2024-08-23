@@ -208,13 +208,17 @@ wf_list_unwind(void)
     if (wf_handle.p_list_current != NULL)
     {
         wf_handle.p_list_current->_event_done = false;
-        wf_state_t wu_state                   = wf_handle.p_list_current->level == WF_LEVEL_NULL ? WF_STATE_UNWINDED : WF_STATE_BUSY;
+        wf_state_t wu_state                   = (wf_handle.p_list_current->level == WF_LEVEL_NULL) ? WF_STATE_UNWINDED : WF_STATE_BUSY;
         WF_CB_WIND_UNWIND_STATE(wu_state);
         return wf_handle.p_list_current->level;
     }
-    WF_CB_WIND_UNWIND_STATE(WF_STATE_UNWINDED);
-
-    return WF_LEVEL_NULL;
+    if (wf_handle.p_list_previous == NULL)
+    {
+        WF_CB_WIND_UNWIND_STATE(WF_STATE_UNWINDED);
+        return WF_LEVEL_NULL;
+    }
+    WF_CB_WIND_UNWIND_STATE(WF_STATE_BUSY);
+    return wf_handle.p_list_previous->level;
 }
 
 void
