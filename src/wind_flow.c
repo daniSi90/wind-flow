@@ -220,8 +220,9 @@ wf_list_execute(void)
         {
             wf_handle.p_list_current = wf_handle.p_list_previous;
         }
-        wf_handle.dir    = WF_DIR_UNWIND;
-        wf_handle.unwind = false;
+        wf_handle.dir       = WF_DIR_UNWIND;
+        wf_handle.is_winded = false; /// Reset the flag when unwinding is triggered
+        wf_handle.unwind    = false;
     }
     else if (wf_handle.unwind)
     {
@@ -282,6 +283,7 @@ wf_list_execute(void)
                 wf_handle.p_list_current             = wf_handle.p_list_current->next;
                 if (wf_handle.p_list_current == NULL)
                 {
+                    wf_handle.is_winded = true;
                     WF_LOGI("End of list\n");
                 }
             }

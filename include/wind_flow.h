@@ -97,6 +97,7 @@ typedef struct
     uint32_t       retry_cnt;
     bool           has_failed;
     bool           wind;
+    bool           is_winded; /**< If the state machine has unwided to the end */
     bool           unwind;
     int8_t         level_current; /**< Current level of the state machine */
     int8_t         level_set;     /**< Level to unwind to */
