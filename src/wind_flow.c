@@ -65,7 +65,7 @@ static const char *TAG = "wf";
 #define RETRY_CNT_DEFAULT 0xffffffff /**< Default value for the retry_cnt to make sure it enters at first retry */
 #define WF_LEVEL_NULL     -1         /**< Default value for the level */
 
-static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT };
+static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT, .level_current = 0xfa };
 
 wf_handle_t *
 wf_handle_init(fp_init_call_t fp_init)
@@ -233,6 +233,7 @@ wf_list_execute(void)
     {
         return wf_handle.p_list_current;
     }
+    // wf_handle.level_prev = wf_handle.level_current;
     wf_handle.level_current = wf_handle.p_list_current->level;
 
     if (wf_handle.dir == WF_DIR_WIND)

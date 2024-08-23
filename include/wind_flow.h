@@ -100,6 +100,7 @@ typedef struct
     bool           is_winded; /**< If the state machine has unwided to the end */
     bool           unwind;
     int8_t         level_current; /**< Current level of the state machine */
+    int8_t         level_prev;    /**< Current level of the state machine */
     int8_t         level_set;     /**< Level to unwind to */
 } wf_handle_t;
 
