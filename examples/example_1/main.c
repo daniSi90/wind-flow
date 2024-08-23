@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include "wind_flow.h"
 
+static void wind_unwind_state(wf_handle_t* p_wf_handle, wf_state_t state);
+static void level_changed(wf_handle_t* p_wf_handle, wf_state_t state);
 static bool function_start(void);
 static bool function_0_init(wf_list_t *list, void *p_args);
 static bool function_0_deinit(wf_list_t *list, void *p_args);
@@ -34,15 +36,15 @@ main(void)
     char           input[100];
     struct timeval timeout;
     fd_set         readfds;
+    int8_t level_prev = 0xfe;
 
-    wf_handle_init(function_start);
-    
-    uint8_t cnt = 0;
+    wf_handle_t* p_wf_handle = wf_handle_init(function_start);
+    wf_handle_add_level_changed(level_changed);
+    wf_handle_add_wind_unwind_state(wind_unwind_state);
+
     while (1)
     {
         wf_list_execute();
-
-        //Sleep(50);
 
         // Initialize the file descriptor set
         FD_ZERO(&readfds);
@@ -107,6 +109,16 @@ main(void)
     return false;
 }
 
+static void wind_unwind_state(wf_handle_t* p_wf_handle, wf_state_t state)
+{
+    printf("Wind/Unwind current state %d\n", state);
+}
+
+static void level_changed(wf_handle_t* p_wf_handle, wf_state_t state)
+{
+    printf("Level changed from %d to %d %d\n", p_wf_handle->level_prev, p_wf_handle->level_current, state);
+}
+
 static bool
 function_start(void)
 {
@@ -118,7 +130,6 @@ function_start(void)
     }
     WF_NEXT_CONFIG_CYCLE_DEFAULT(p_list, function_0_init);
     WF_NEXT_CONFIG_UNWIND_DEFAULT(p_list, function_0_deinit);
-    WF_NEXT_WAIT_FOR_EVENT(p_list);
 }
 
 static bool

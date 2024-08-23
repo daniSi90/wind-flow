@@ -49,6 +49,22 @@
 /* Private define ------------------------------------------------------------*/
 static const char *TAG = "wf";
 
+#define WF_CB_LEVEL_CHANGED(_state)                         \
+    if (wf_handle.level_prev != wf_handle.level_current)    \
+    {                                                       \
+        if (wf_handle.fp_level_changed != NULL)             \
+        {                                                   \
+            wf_handle.fp_level_changed(&wf_handle, _state); \
+        }                                                   \
+        wf_handle.level_prev = wf_handle.level_current;     \
+    }
+
+#define WF_CB_WIND_UNWIND_STATE(_state)                     \
+    if (wf_handle.fp_wind_unwind_state != NULL)             \
+    {                                                       \
+        wf_handle.fp_wind_unwind_state(&wf_handle, _state); \
+    }
+
 /* Private macro -------------------------------------------------------------*/
 #ifdef CONFIG_IDF_TARGET
 #define WF_LOGD(format, ...) ESP_LOGD(TAG, format, ##__VA_ARGS__)
@@ -65,7 +81,7 @@ static const char *TAG = "wf";
 #define RETRY_CNT_DEFAULT 0xffffffff /**< Default value for the retry_cnt to make sure it enters at first retry */
 #define WF_LEVEL_NULL     -1         /**< Default value for the level */
 
-static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT, .level_current = 0xfa };
+static wf_handle_t wf_handle = { .retry_cnt = RETRY_CNT_DEFAULT, .level_prev = -1 };
 
 wf_handle_t *
 wf_handle_init(fp_init_call_t fp_init)
@@ -78,6 +94,18 @@ wf_handle_init(fp_init_call_t fp_init)
 
     wf_handle.fp_init = fp_init;
     return &wf_handle;
+}
+
+void
+wf_handle_add_level_changed(fp_state_t fp_level_changed)
+{
+    wf_handle.fp_level_changed = fp_level_changed;
+}
+
+void
+wf_handle_add_wind_unwind_state(fp_state_t fp_wind_unwind_state)
+{
+    wf_handle.fp_wind_unwind_state = fp_wind_unwind_state;
 }
 
 void
@@ -180,17 +208,20 @@ wf_list_unwind(void)
     if (wf_handle.p_list_current != NULL)
     {
         wf_handle.p_list_current->_event_done = false;
+        wf_state_t wu_state                   = wf_handle.p_list_current->level == WF_LEVEL_NULL ? WF_STATE_UNWINDED : WF_STATE_BUSY;
+        WF_CB_WIND_UNWIND_STATE(wu_state);
         return wf_handle.p_list_current->level;
     }
+    WF_CB_WIND_UNWIND_STATE(WF_STATE_UNWINDED);
 
     return WF_LEVEL_NULL;
 }
 
-wf_list_t *
+void
 wf_list_execute(void)
 {
     // WF_LOGI("level %d\n", wf_handle.level_current);
-
+    wf_state_t wu_state = WF_STATE_BUSY;
     /// Handle if WINDING is triggered
     if (wf_handle.wind && (wf_handle.dir != WF_DIR_WIND))
     {
@@ -220,9 +251,8 @@ wf_list_execute(void)
         {
             wf_handle.p_list_current = wf_handle.p_list_previous;
         }
-        wf_handle.dir       = WF_DIR_UNWIND;
-        wf_handle.is_winded = false; /// Reset the flag when unwinding is triggered
-        wf_handle.unwind    = false;
+        wf_handle.dir    = WF_DIR_UNWIND;
+        wf_handle.unwind = false;
     }
     else if (wf_handle.unwind)
     {
@@ -231,9 +261,8 @@ wf_list_execute(void)
 
     if (wf_handle.p_list_current == NULL)
     {
-        return wf_handle.p_list_current;
+        return;
     }
-    // wf_handle.level_prev = wf_handle.level_current;
     wf_handle.level_current = wf_handle.p_list_current->level;
 
     if (wf_handle.dir == WF_DIR_WIND)
@@ -246,7 +275,7 @@ wf_list_execute(void)
                 wf_handle.p_list_current = wf_handle.p_list_current->next;
                 WF_LOGI("Waiting for event DONE\n");
             }
-            return wf_handle.p_list_current;
+            return;
         }
 
         if (wf_handle.p_list_current->config_wind.fp_call != NULL)
@@ -264,10 +293,11 @@ wf_list_execute(void)
                         wf_handle.dir                                      = WF_DIR_UNWIND;
                         wf_handle.has_failed                               = true;
                         wf_handle.p_list_previous                          = wf_handle.p_list_current;
-                        return wf_handle.p_list_current                    = wf_handle.p_list_current->previous;
+                        wf_handle.p_list_current                           = wf_handle.p_list_current->previous;
+                        return;
                     }
                     wf_handle.retry_cnt = 0;
-                    return wf_handle.p_list_current;
+                    return;
                 }
                 wf_handle.retry_cnt                  = RETRY_CNT_DEFAULT;
                 wf_handle.p_list_current->_wind_done = true;
@@ -284,8 +314,8 @@ wf_list_execute(void)
                 wf_handle.p_list_current             = wf_handle.p_list_current->next;
                 if (wf_handle.p_list_current == NULL)
                 {
-                    wf_handle.is_winded = true;
-                    WF_LOGI("End of list\n");
+                    /// At this point the winding is done
+                    wu_state = WF_STATE_WINDED;
                 }
             }
         }
@@ -297,7 +327,7 @@ wf_list_execute(void)
             WF_LOGI("Go back to wind\n");
             wf_handle.has_failed = false;
             wf_handle.dir        = WF_DIR_WIND;
-            return wf_handle.p_list_current;
+            return;
         }
         if (wf_handle.p_list_current->config_unwind.fp_call != NULL)
         {
@@ -311,7 +341,7 @@ wf_list_execute(void)
                     wf_handle.dir                                      = WF_DIR_WIND;
                     wf_handle.has_failed                               = true;
                 }
-                return wf_handle.p_list_current;
+                return;
             }
             wf_handle.p_list_previous = wf_handle.p_list_current;
             wf_handle.p_list_current  = wf_handle.p_list_current->previous;
@@ -324,6 +354,7 @@ wf_list_execute(void)
             {
                 free(wf_handle.p_list_previous); /// When we go back free is needed
                 wf_handle.p_list_previous = NULL;
+                wu_state                  = WF_STATE_UNWINDED;
             }
             wf_handle.level_current = (wf_handle.p_list_current == NULL) ? WF_LEVEL_NULL : wf_handle.level_current; /// Check if bottom is reached and set level to NULL
         }
@@ -333,5 +364,5 @@ wf_list_execute(void)
         }
     }
 
-    return wf_handle.p_list_current;
+    WF_CB_LEVEL_CHANGED(wu_state);
 }

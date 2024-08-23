@@ -83,13 +83,25 @@ typedef enum
     WF_DIR_UNWIND,        /**< Unwind direction */
 } wf_dir_t;
 
-typedef struct wf_list_t wf_list_t;
+typedef enum
+{
+    WF_STATE_BUSY = 0, /**< State machine is busy */
+    WF_STATE_UNWINDED, /**< State machine is unwinded */
+    WF_STATE_WINDED,   /**< State machine is winding */
+} wf_state_t;
+
+typedef struct wf_list_t   wf_list_t;
+typedef struct wf_handle_t wf_handle_t;
+
 typedef bool (*fp_call_t)(wf_list_t *, void *);
 typedef bool (*fp_init_call_t)(void);
+typedef void (*fp_state_t)(wf_handle_t *, wf_state_t);
 
-typedef struct
+typedef struct wf_handle_t
 {
     fp_init_call_t fp_init; /**< Function pointer to be called */
+    fp_state_t     fp_level_changed;
+    fp_state_t     fp_wind_unwind_state;
     wf_dir_t       dir;
     wf_list_t     *p_list_current;
     wf_list_t     *p_list_previous;
@@ -97,7 +109,6 @@ typedef struct
     uint32_t       retry_cnt;
     bool           has_failed;
     bool           wind;
-    bool           is_winded; /**< If the state machine has unwided to the end */
     bool           unwind;
     int8_t         level_current; /**< Current level of the state machine */
     int8_t         level_prev;    /**< Current level of the state machine */
@@ -127,6 +138,8 @@ typedef struct wf_list_t
 } wf_list_t;
 
 wf_handle_t *wf_handle_init(fp_init_call_t fp_init);
+void         wf_handle_add_level_changed(fp_state_t fp_level_changed);
+void         wf_handle_add_wind_unwind_state(fp_state_t fp_wind_unwind_state);
 wf_list_t   *wf_list_add_next(wf_list_t *p_list);
 bool         wf_list_add_wind_config(wf_list_t *p_list, wf_config_t *p_config);
 bool         wf_list_add_unwind_config(wf_list_t *p_list, wf_config_t *p_config);
@@ -134,7 +147,7 @@ bool         wf_list_event_done(uint8_t level);
 bool         wf_is_busy(void);
 int8_t       wf_list_wind(void);
 int8_t       wf_list_unwind(void);
-wf_list_t   *wf_list_execute(void);
+void         wf_list_execute(void);
 
 #ifdef __cplusplus
 }
